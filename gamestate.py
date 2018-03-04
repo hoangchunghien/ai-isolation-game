@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 xlim, ylim = 3, 2  # board dimension constants
 
 class GameState:
@@ -33,6 +35,23 @@ class GameState:
         self._board[-1][-1] = 1  # block lower-right corner
         self._parity = 0
         self._player_locations = [None, None]
+    
+    def forecast_move(self, move):
+        """ Return a new board object with the specified move
+        applied to the current game state.
+        
+        Parameters
+        ----------
+        move: tuple
+            The target position for the active player's next move
+        """
+        if move not in self.get_legal_moves():
+            raise RuntimeError("Attempted forecast of illegal move")
+        newBoard = deepcopy(self)
+        newBoard._board[move[0]][move[1]] = 1
+        newBoard._player_locations[self._parity] = move
+        newBoard._parity ^= 1
+        return newBoard
     
     def get_legal_moves(self):
         """ Return a list of all legal moves available to the

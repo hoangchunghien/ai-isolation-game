@@ -1,3 +1,7 @@
+"""Finish all TODO items in this file to complete the isolation project, then
+test your agent's strength against a set of known agents using tournament.py
+and include the results in your report.
+"""
 import random
 
 
@@ -30,8 +34,15 @@ def custom_score(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
-    raise NotImplementedError
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    op_legal_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    my_legal_moves = len(game.get_legal_moves(player))
+    return float(my_legal_moves - op_legal_moves)
 
 
 def custom_score_2(game, player):
@@ -208,21 +219,8 @@ class MinimaxPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        legal_moves = game.get_legal_moves()
-        if not legal_moves:
-            return (-1, -1)
-
-        best_score = float('-inf')
-        best_move = None
-        for m in legal_moves:
-            v = self._min_value(game.forecast_move(m), depth - 1)
-            if v > best_score:
-                best_score = v
-                best_move = m
-        
-        if best_move is None:
-            return legal_moves[random.randint(0, len(legal_moves) - 1)]
-        return best_move
+        _, move = self._max_value(game, depth)
+        return move
     
     def _min_value(self, game, depth):
         if self.time_left() < self.TIMER_THRESHOLD:
@@ -231,15 +229,21 @@ class MinimaxPlayer(IsolationPlayer):
         player = game.active_player
 
         if game.is_winner(player) or game.is_loser(player):
-            return game.utility(player)
+            return game.utility(player), None
         
         if depth <= 0:
-            return self.score(game, player)
+            return self.score(game, player), None
 
         v = float('inf')
+        move = None
         for m in game.get_legal_moves(player):
-            v = min(v, self._max_value(game.forecast_move(m), depth - 1))
-        return v
+            if move is None:
+                move = m
+            
+            max_v, _ = self._max_value(game.forecast_move(m), depth - 1)
+            if v > max_v:
+                v, move = max_v, m
+        return v, move
     
     def _max_value(self, game, depth):
         if self.time_left() < self.TIMER_THRESHOLD:
@@ -248,15 +252,21 @@ class MinimaxPlayer(IsolationPlayer):
         player = game.active_player
 
         if game.is_winner(player) or game.is_loser(player):
-            return game.utility(player)
+            return game.utility(player), None
         
         if depth <= 0:
-            return self.score(game, player)
+            return self.score(game, player), None
         
         v = float('-inf')
+        move = None
         for m in game.get_legal_moves(player):
-            v = max(v, self._min_value(game.forecast_move(m), depth - 1))
-        return v
+            if move is None:
+                move = m
+            
+            min_v, _ = self._min_value(game.forecast_move(m), depth - 1)
+            if min_v > v:
+                v, move = min_v, m
+        return v, move
 
 
 class AlphaBetaPlayer(IsolationPlayer):
@@ -362,7 +372,7 @@ class AlphaBetaPlayer(IsolationPlayer):
 
         _, move = self._max_value(game, depth, alpha, beta)
         return move
-
+  
     def _min_value(self, game, depth, alpha, beta):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
@@ -380,9 +390,9 @@ class AlphaBetaPlayer(IsolationPlayer):
         for m in game.get_legal_moves():
             if move is None:
                 move = m
-            min_v, _ = self._max_value(game.forecast_move(m), depth - 1, alpha, beta)
-            if v > min_v:
-                v, move = min_v, m
+            max_v, _ = self._max_value(game.forecast_move(m), depth - 1, alpha, beta)
+            if v > max_v:
+                v, move = max_v, m
             
             if v <= alpha:
                 return v, move
@@ -415,4 +425,3 @@ class AlphaBetaPlayer(IsolationPlayer):
                 return v, move
             alpha = max(alpha, v)
         return v, move
-

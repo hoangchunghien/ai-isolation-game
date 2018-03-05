@@ -12,6 +12,23 @@ In this project, I'll build an game playing agent by implement adversarial searc
 pip install -r requirements.txt
 ```
 
+# How to use the code
+- All algorithms are implemented in `game_agent.py`
+- Simple usage:
+```
+from game_agent import MinimaxPlayer, AlphaBetaPlayer
+from isolation import Board
+
+player1 = MinimaxPlayer()
+player2 = AlphaBetaPlayer()
+
+game = Board(player1, player2)
+winner, history, outcome = game.play()
+print("\nWinner: {}\nOutcome: {}".format(winner, outcome))
+print(game.to_string())
+print("Move history:\n{!s}".format(history))
+```
+
 # Demo
 Run the following python file to understand how the game work
 ```

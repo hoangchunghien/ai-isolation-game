@@ -42,7 +42,7 @@ def custom_score(game, player):
 
     op_legal_moves = len(game.get_legal_moves(game.get_opponent(player)))
     my_legal_moves = len(game.get_legal_moves(player))
-    return float(my_legal_moves - op_legal_moves)
+    return float(my_legal_moves / (op_legal_moves + 1))
 
 
 def custom_score_2(game, player):
@@ -103,8 +103,13 @@ def custom_score_3(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
-    raise NotImplementedError
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+    
+
 
 
 class IsolationPlayer:
@@ -230,26 +235,20 @@ class MinimaxPlayer(IsolationPlayer):
             raise SearchTimeout()
 
         _, move = self._max_value(game, depth)
-        return move
+        return move or (-1, -1)
     
     def _min_value(self, game, depth):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
         
-        player = game.active_player
-
-        if game.is_winner(player) or game.is_loser(player):
-            return game.utility(player), None
-        
         if depth <= 0:
-            return self.score(game, player), None
+            return self.score(game, self), None
 
         v = float('inf')
         move = None
-        for m in game.get_legal_moves(player):
+        for m in game.get_legal_moves():
             if move is None:
-                move = m
-            
+                move = m            
             max_v, _ = self._max_value(game.forecast_move(m), depth - 1)
             if v > max_v:
                 v, move = max_v, m
@@ -259,20 +258,14 @@ class MinimaxPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
         
-        player = game.active_player
-
-        if game.is_winner(player) or game.is_loser(player):
-            return game.utility(player), None
-        
         if depth <= 0:
-            return self.score(game, player), None
+            return self.score(game, self), None
         
         v = float('-inf')
-        move = None
-        for m in game.get_legal_moves(player):
+        move = (-1, -1)
+        for m in game.get_legal_moves():
             if move is None:
                 move = m
-            
             min_v, _ = self._min_value(game.forecast_move(m), depth - 1)
             if min_v > v:
                 v, move = min_v, m
@@ -321,13 +314,17 @@ class AlphaBetaPlayer(IsolationPlayer):
         # in case the search fails due to timeout
         best_move = (-1, -1)
 
+        depth = 1
+
         try:
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
-            return self.alphabeta(game, self.search_depth)
+            while True:
+                best_move = self.alphabeta(game, depth)
+                depth += 1
 
         except SearchTimeout:
-            pass  # Handle any actions required after timeout as needed
+            return best_move
 
         # Return the best move from the last completed search iteration
         return best_move
@@ -381,19 +378,14 @@ class AlphaBetaPlayer(IsolationPlayer):
             raise SearchTimeout()
 
         _, move = self._max_value(game, depth, alpha, beta)
-        return move
+        return move or (-1, -1)
   
     def _min_value(self, game, depth, alpha, beta):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
         
-        player = game.active_player
-
-        if game.is_winner(player) or game.is_loser(player):
-            return (game.utility(player), None)
-        
         if depth <= 0:
-            return (self.score(game, player), None)
+            return (self.score(game, self), None)
         
         v = float('inf')
         move = None
@@ -413,17 +405,12 @@ class AlphaBetaPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
         
-        player = game.active_player
-
-        if game.is_winner(player) or game.is_loser(player):
-            return game.utility(player), None
-        
         if depth <= 0:
-            return self.score(game, player), None
+            return self.score(game, self), None
         
         v = float('-inf')
         move = None
-        for m in game.get_legal_moves(player):
+        for m in game.get_legal_moves():
             if move is None:
                 move = m
             

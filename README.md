@@ -29,6 +29,13 @@ print(game.to_string())
 print("Move history:\n{!s}".format(history))
 ```
 
+# Tournament
+Run the following python file to see the benchmark
+```
+python tournament.py
+```
+![Tournament Result](viz_tournament.png)
+
 # Demo
 Run the following python file to understand how the game work
 ```

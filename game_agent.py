@@ -109,7 +109,10 @@ def custom_score_3(game, player):
     if game.is_winner(player):
         return float("inf")
     
-
+    own_loc = game.get_player_location(player) or (0, 0)
+    opp_loc = game.get_player_location(game.get_opponent(player)) or (0, 0)
+    score = float((own_loc[0]-opp_loc[0])**2 + (own_loc[1]-opp_loc[1])**2)
+    return score
 
 
 class IsolationPlayer:
@@ -234,6 +237,10 @@ class MinimaxPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
+        legal_moves = game.get_legal_moves()
+        if legal_moves:
+            move = legal_moves[random.randint(0, len(legal_moves) - 1)]
+        
         _, move = self._max_value(game, depth)
         return move or (-1, -1)
     
@@ -377,6 +384,10 @@ class AlphaBetaPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
+        legal_moves = game.get_legal_moves()
+        if legal_moves:
+            move = legal_moves[random.randint(0, len(legal_moves) - 1)]
+        
         _, move = self._max_value(game, depth, alpha, beta)
         return move or (-1, -1)
   
